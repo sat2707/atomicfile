@@ -75,7 +75,12 @@ class AtomicFile(object):
     def close(self):
         if not self._fp.closed:
             self._fp.close()
-            os.rename(self._tempname, self.__name)
+            try: os.rename(self._tempname, self.__name)
+            except OSError as error:
+                if error.errno == 17:
+                    os.remove(self.__name)
+                    os.rename(self._tempname, self.__name)
+                else: raise
 
     def discard(self):
         if not self._fp.closed:
